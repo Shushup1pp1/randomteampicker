@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>完全ランダムチームルーレット</title>
+
+<style>
+body{
+    margin:0;
+    font-family:sans-serif;
+    background:#0f172a;
+    color:white;
+}
+
+header{
+    background:#1e293b;
+    padding:20px;
+    font-size:28px;
+    font-weight:bold;
+    text-align:center;
+    box-shadow:0 2px 10px rgba(0,0,0,0.4);
+}
+
+.container{
+    max-width:1000px;
+    margin:auto;
+    padding:20px;
+}
+
+.card{
+    background:#1e293b;
+    border-radius:16px;
+    padding:20px;
+    margin-bottom:20px;
+    box-shadow:0 4px 15px rgba(0,0,0,0.3);
+}
+
+h2{
+    margin-top:0;
+}
+
+.input-group{
+    margin-bottom:15px;
+}
+
+label{
+    display:block;
+    margin-bottom:5px;
+    font-weight:bold;
+}
+
+input, textarea{
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:10px;
+    background:#334155;
+    color:white;
+    font-size:16px;
+    box-sizing:border-box;
+}
+
+textarea{
+    height:220px;
+    resize:vertical;
+}
+
+.buttons{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+}
+
+button{
+    flex:1;
+    min-width:180px;
+    padding:14px;
+    border:none;
+    border-radius:12px;
+    background:#3b82f6;
+    color:white;
+    font-size:17px;
+    font-weight:bold;
+    cursor:pointer;
+    transition:0.2s;
+}
+
+button:hover{
+    transform:scale(1.03);
+    background:#2563eb;
+}
+
+button:active{
+    transform:scale(0.98);
+}
+
+.result{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:15px;
+}
+
+.team{
+    background:#334155;
+    border-radius:14px;
+    padding:15px;
+}
+
+.team h3{
+    margin-top:0;
+    color:#60a5fa;
+}
+
+.member{
+    background:#475569;
+    padding:8px;
+    border-radius:8px;
+    margin-bottom:8px;
+}
+
+.roulette{
+    text-align:center;
+    font-size:42px;
+    font-weight:bold;
+    margin:25px 0;
+    color:#60a5fa;
+    height:60px;
+}
+</style>
+</head>
+<body>
+
+<header>
+🎲 完全ランダムチームルーレット
+</header>
+
+<div class="container">
+
+    <div class="card">
+        <h2>⚙️ 設定</h2>
+
+        <div class="input-group">
+            <label>チーム数</label>
+            <input type="number" id="teamCount" value="2" min="1">
+        </div>
+
+        <div class="input-group">
+            <label>各チーム人数</label>
+            <input type="number" id="teamSize" value="3" min="1">
+        </div>
+
+        <div class="input-group">
+            <label>メンバー（改行区切り）</label>
+            <textarea id="members">田中
+佐藤
+鈴木
+高橋
+山田
+伊藤</textarea>
+        </div>
+
+        <div class="buttons">
+            <button onclick="startRoulette()">🎰 ルーレット開始</button>
+            <button onclick="resetAll()">🗑 リセット</button>
+        </div>
+    </div>
+
+    <div class="roulette" id="rouletteText"></div>
+
+    <div class="card">
+        <h2>🏆 結果</h2>
+        <div class="result" id="result"></div>
+    </div>
+
+</div>
+
+<script>
+function shuffle(array){
+    for(let i = array.length - 1; i > 0; i--){
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+function startRoulette(){
+
+    const teamCount = parseInt(document.getElementById("teamCount").value);
+    const teamSize = parseInt(document.getElementById("teamSize").value);
+
+    const members = document.getElementById("members")
+        .value
+        .split("\n")
+        .map(v => v.trim())
+        .filter(v => v !== "");
+
+    const needed = teamCount * teamSize;
+
+    if(members.length < needed){
+        alert("人数が足りません！");
+        return;
+    }
+
+    shuffle(members);
+
+    const rouletteText = document.getElementById("rouletteText");
+
+    let count = 0;
+
+    const interval = setInterval(() => {
+        rouletteText.textContent =
+            members[Math.floor(Math.random() * members.length)];
+        count++;
+
+        if(count > 25){
+            clearInterval(interval);
+
+            rouletteText.textContent = "チーム決定！！";
+            createTeams(members, teamCount, teamSize);
+        }
+
+    }, 80);
+}
+
+function createTeams(members, teamCount, teamSize){
+
+    const result = document.getElementById("result");
+    result.innerHTML = "";
+
+    let index = 0;
+
+    for(let i = 0; i < teamCount; i++){
+
+        const team = document.createElement("div");
+        team.className = "team";
+
+        const title = document.createElement("h3");
+        title.textContent = "TEAM " + String.fromCharCode(65 + i);
+
+        team.appendChild(title);
+
+        for(let j = 0; j < teamSize; j++){
+
+            const member = document.createElement("div");
+            member.className = "member";
+            member.textContent = members[index];
+
+            team.appendChild(member);
+
+            index++;
+        }
+
+        result.appendChild(team);
+    }
+}
+
+function resetAll(){
+
+    document.getElementById("members").value = "";
+    document.getElementById("result").innerHTML = "";
+    document.getElementById("rouletteText").textContent = "";
+}
+</script>
+
+</body>
+</html>
